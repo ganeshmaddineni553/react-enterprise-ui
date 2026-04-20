@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+//2C Redux Toolkit integration for products
 import { createProductApi, fetchAllProductsApi } from "../../services/productService";
 
 const initialState = {
