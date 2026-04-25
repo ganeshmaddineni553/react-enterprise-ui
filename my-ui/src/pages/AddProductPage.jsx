@@ -5,11 +5,16 @@ import {
   createProduct,
 } from "../features/product/productSlice";
 import { Link, useNavigate } from "react-router-dom";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
 
 function AddProductPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, successMessage } = useSelector((state) => state.products);
+
+  const { loading, error, successMessage } = useSelector(
+    (state) => state.products
+  );
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +30,7 @@ function AddProductPage() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -63,6 +69,10 @@ function AddProductPage() {
         <Link to="/">Go to Product List</Link>
       </div>
 
+      <ErrorMessage message={error} />
+
+      {loading && <LoadingSpinner message="Creating product..." />}
+
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "10px" }}>
           <label>Name: </label>
@@ -72,6 +82,7 @@ function AddProductPage() {
             value={formData.name}
             onChange={handleChange}
             required
+            disabled={loading}
           />
         </div>
 
@@ -83,6 +94,7 @@ function AddProductPage() {
             value={formData.price}
             onChange={handleChange}
             required
+            disabled={loading}
           />
         </div>
 
@@ -94,6 +106,7 @@ function AddProductPage() {
             value={formData.stock}
             onChange={handleChange}
             required
+            disabled={loading}
           />
         </div>
 
@@ -103,7 +116,6 @@ function AddProductPage() {
       </form>
 
       {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

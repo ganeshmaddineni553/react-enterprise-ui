@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCartItems } from "../features/cart/cartSlice";
 import CartTable from "../components/CartTable";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
 import { Link } from "react-router-dom";
 
 function CartPage() {
@@ -20,8 +22,9 @@ function CartPage() {
         <Link to="/">Go to Product List</Link>
       </div>
 
-      {loading && <p>Loading cart items...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ErrorMessage message={error} />
+
+      {loading && <LoadingSpinner message="Loading cart items..." />}
 
       {!loading && !error && <CartTable cartItems={cartItems} />}
     </div>

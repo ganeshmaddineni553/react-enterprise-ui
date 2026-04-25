@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-//2C Redux Toolkit integration for products
-import { createProductApi, fetchAllProductsApi } from "../../services/productService";
+import {
+  createProductApi,
+  fetchAllProductsApi,
+} from "../../services/productService";
 
 const initialState = {
   products: [],
@@ -15,7 +17,9 @@ export const fetchProducts = createAsyncThunk(
     try {
       return await fetchAllProductsApi();
     } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to fetch products");
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Error fetching products"
+      );
     }
   }
 );
@@ -26,7 +30,9 @@ export const createProduct = createAsyncThunk(
     try {
       return await createProductApi(productData);
     } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to create product");
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Error creating product"
+      );
     }
   }
 );
@@ -42,6 +48,7 @@ const productSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch products
       .addCase(fetchProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -49,11 +56,14 @@ const productSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload;
+        state.error = null;
       })
-      .addCase(fetchProducts.rejected, (state) => {
+      .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
-        state.error = "Error fetching products";
+        state.error = action.payload || "Error fetching products";
       })
+
+      // Create product
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -62,11 +72,13 @@ const productSlice = createSlice({
       .addCase(createProduct.fulfilled, (state, action) => {
         state.loading = false;
         state.products.push(action.payload);
+        state.error = null;
         state.successMessage = "Product created successfully";
       })
-      .addCase(createProduct.rejected, (state) => {
+      .addCase(createProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = "Error creating product";
+        state.error = action.payload || "Error creating product";
+        state.successMessage = "";
       });
   },
 });
