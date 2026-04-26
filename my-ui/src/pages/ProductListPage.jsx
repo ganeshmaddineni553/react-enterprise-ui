@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../features/product/productSlice";
 import { addToCart, createCart } from "../features/cart/cartSlice";
@@ -13,6 +13,9 @@ function ProductListPage() {
   const { products, loading, error } = useSelector((state) => state.products);
   const cartState = useSelector((state) => state.cart);
 
+  const [searchText, setSearchText] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
@@ -22,6 +25,19 @@ function ProductListPage() {
       dispatch(createCart({ userId: 101 }));
     }
   }, [dispatch, cartState.cart]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesName = product.name
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+
+      const matchesPrice =
+        maxPrice === "" || Number(product.price) <= Number(maxPrice);
+
+      return matchesName && matchesPrice;
+    });
+  }, [products, searchText, maxPrice]);
 
   const handleAddToCart = async (productId) => {
     if (!cartState.cart?.id) {
@@ -54,6 +70,33 @@ function ProductListPage() {
         <Link to="/cart">Go to Cart</Link>
       </div>
 
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Search by product name"
+          value={searchText}
+          onChange={(event) => setSearchText(event.target.value)}
+          style={{ marginRight: "10px", padding: "8px" }}
+        />
+
+        <input
+          type="number"
+          placeholder="Max price"
+          value={maxPrice}
+          onChange={(event) => setMaxPrice(event.target.value)}
+          style={{ marginRight: "10px", padding: "8px" }}
+        />
+
+        <button
+          onClick={() => {
+            setSearchText("");
+            setMaxPrice("");
+          }}
+        >
+          Clear Filters
+        </button>
+      </div>
+
       <ErrorMessage message={error} />
       <ErrorMessage message={cartState.error} />
 
@@ -61,7 +104,10 @@ function ProductListPage() {
       {cartState.loading && <LoadingSpinner message="Processing cart request..." />}
 
       {!loading && !error && (
-        <ProductTable products={products} onAddToCart={handleAddToCart} />
+        <ProductTable
+          products={filteredProducts}
+          onAddToCart={handleAddToCart}
+        />
       )}
 
       {cartState.successMessage && (
