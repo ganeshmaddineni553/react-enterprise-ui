@@ -10,14 +10,17 @@ import { Link } from "react-router-dom";
 function ProductListPage() {
   const dispatch = useDispatch();
 
-  const { products, loading, error } = useSelector((state) => state.products);
+  const { products, loading, error, page, totalPages } = useSelector(
+    (state) => state.products
+  );
+
   const cartState = useSelector((state) => state.cart);
 
   const [searchText, setSearchText] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({ page: 0, size: 5, sortBy: "id" }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -38,6 +41,22 @@ function ProductListPage() {
       return matchesName && matchesPrice;
     });
   }, [products, searchText, maxPrice]);
+
+  const handlePreviousPage = () => {
+    if (page > 0) {
+      dispatch(fetchProducts({ page: page - 1, size: 5, sortBy: "id" }));
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages - 1) {
+      dispatch(fetchProducts({ page: page + 1, size: 5, sortBy: "id" }));
+    }
+  };
+
+  const handlePageNumberClick = (pageNumber) => {
+    dispatch(fetchProducts({ page: pageNumber, size: 5, sortBy: "id" }));
+  };
 
   const handleAddToCart = async (productId) => {
     if (!cartState.cart?.id) {
@@ -101,13 +120,49 @@ function ProductListPage() {
       <ErrorMessage message={cartState.error} />
 
       {loading && <LoadingSpinner message="Loading products..." />}
-      {cartState.loading && <LoadingSpinner message="Processing cart request..." />}
+
+      {cartState.loading && (
+        <LoadingSpinner message="Processing cart request..." />
+      )}
 
       {!loading && !error && (
-        <ProductTable
-          products={filteredProducts}
-          onAddToCart={handleAddToCart}
-        />
+        <>
+          <ProductTable
+            products={filteredProducts}
+            onAddToCart={handleAddToCart}
+          />
+
+          <div style={{ marginTop: "20px" }}>
+            <button onClick={handlePreviousPage} disabled={page === 0}>
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index}
+                onClick={() => handlePageNumberClick(index)}
+                style={{
+                  marginLeft: "5px",
+                  marginRight: "5px",
+                  fontWeight: page === index ? "bold" : "normal",
+                }}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={handleNextPage}
+              disabled={page === totalPages - 1}
+            >
+              Next
+            </button>
+
+            <span style={{ marginLeft: "15px" }}>
+              Page {page + 1} of {totalPages}
+            </span>
+          </div>
+        </>
       )}
 
       {cartState.successMessage && (
